@@ -403,8 +403,9 @@
     }
     function formatDate(isoDateOnly){
       if(!isoDateOnly) return '';
-      var d = new Date(isoDateOnly + 'T00:00:00');
-      return new Intl.DateTimeFormat('ca-ES', {day:'2-digit', month:'short', year:'numeric'}).format(d);
+      var parts = isoDateOnly.split('-');
+      if(parts.length !== 3) return isoDateOnly;
+      return parts[2] + '/' + parts[1] + '/' + parts[0];
     }
     function deadlineInfo(task){
       if(!task.deadline) return null;
