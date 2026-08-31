@@ -291,6 +291,13 @@
             <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8H12.5A3.5 3.5 0 0116 11.5V11.5A3.5 3.5 0 0112.5 15H8"/><path d="M8 5L5 8L8 11"/></svg>
             Desfés
           </button>
+          <button type="button" id="backup-btn" class="icon-btn" title="Desa una còpia de seguretat (.json)" aria-label="Desa una còpia de seguretat">
+            <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v9M6.5 8.5L10 12l3.5-3.5"/><path d="M4 15.5h12"/></svg>
+          </button>
+          <button type="button" id="restore-btn" class="icon-btn" title="Restaura des d'una còpia (.json)" aria-label="Restaura des d'una còpia de seguretat">
+            <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12V3M6.5 6.5L10 3l3.5 3.5"/><path d="M4 15.5h12"/></svg>
+          </button>
+          <input type="file" id="restore-file-input" accept="application/json,.json" hidden>
         </div>
       </div>
     </header>
@@ -376,7 +383,9 @@
       plus:'<svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>',
       x:'<svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg>',
       grip:'<svg viewBox="0 0 20 20" width="11" height="11" fill="currentColor"><circle cx="6" cy="4" r="1.4"/><circle cx="6" cy="10" r="1.4"/><circle cx="6" cy="16" r="1.4"/><circle cx="13" cy="4" r="1.4"/><circle cx="13" cy="10" r="1.4"/><circle cx="13" cy="16" r="1.4"/></svg>',
-      undo:'<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8H12.5A3.5 3.5 0 0116 11.5V11.5A3.5 3.5 0 0112.5 15H8"/><path d="M8 5L5 8L8 11"/></svg>'
+      undo:'<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8H12.5A3.5 3.5 0 0116 11.5V11.5A3.5 3.5 0 0112.5 15H8"/><path d="M8 5L5 8L8 11"/></svg>',
+      download:'<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v9M6.5 8.5L10 12l3.5-3.5"/><path d="M4 15.5h12"/></svg>',
+      upload:'<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12V3M6.5 6.5L10 3l3.5 3.5"/><path d="M4 15.5h12"/></svg>'
     };
 
     function el(tag, opts, children){
@@ -885,6 +894,80 @@
       else { s.classList.add('offline'); text.textContent = 'Vista prèvia'; }
     }
 
+    function exportBackupViaBlob(jsonStr, filename){
+      var blob = new Blob([jsonStr], {type:'application/json'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      showToast('Còpia de seguretat desada');
+    }
+    function exportBackup(){
+      var payload = {
+        app: 'task-manager-ctti',
+        exportedAt: new Date().toISOString(),
+        state: state
+      };
+      var jsonStr = JSON.stringify(payload, null, 2);
+      var stamp = new Date().toISOString().slice(0,10);
+      var filename = 'task-manager-backup-' + stamp + '.json';
+      if(!hasClaudeRuntime){
+        exportBackupViaBlob(jsonStr, filename);
+        return;
+      }
+      window.claude.use('downloads').then(function(dl){
+        if(!dl){ exportBackupViaBlob(jsonStr, filename); return; }
+        dl.save({filename: filename, data: jsonStr}).then(function(){
+          showToast('Còpia de seguretat desada');
+        }).catch(function(err){
+          if(err && err.code === 'declined') return;
+          showToast('No s\'ha pogut desar la còpia de seguretat.');
+        });
+      }).catch(function(){
+        exportBackupViaBlob(jsonStr, filename);
+      });
+    }
+    function isValidBackupState(obj){
+      if(!obj || typeof obj !== 'object') return false;
+      if(!Array.isArray(obj.groups)) return false;
+      if(!obj.groups.every(function(g){ return g && typeof g.id === 'string' && typeof g.name === 'string' && Array.isArray(g.tasks); })) return false;
+      if(typeof obj.history !== 'undefined' && !Array.isArray(obj.history)) return false;
+      return true;
+    }
+    function importBackupFile(file){
+      var reader = new FileReader();
+      reader.onload = function(){
+        var parsed;
+        try{
+          parsed = JSON.parse(reader.result);
+        }catch(e){
+          showToast('El fitxer no és un JSON vàlid.');
+          return;
+        }
+        var incoming = (parsed && parsed.state && Array.isArray(parsed.state.groups)) ? parsed.state : parsed;
+        if(!isValidBackupState(incoming)){
+          showToast('El fitxer no té el format d\'una còpia de seguretat del Task Manager.');
+          return;
+        }
+        var ok = window.confirm('Això reemplaçarà TOTES les tasques actuals (pendents i historial) per les del fitxer. Aquesta acció no es pot desfer. Vols continuar?');
+        if(!ok) return;
+        state = incoming;
+        if(!state.history) state.history = [];
+        if(!state.settings) state.settings = {};
+        if(!state.settings.viewMode) state.settings.viewMode = 'cards';
+        if(typeof state.lastResolvedId === 'undefined') state.lastResolvedId = null;
+        document.getElementById('view-cards').classList.toggle('active', state.settings.viewMode === 'cards');
+        document.getElementById('view-list').classList.toggle('active', state.settings.viewMode === 'list');
+        save();
+        showToast('Còpia restaurada correctament.');
+      };
+      reader.onerror = function(){ showToast('No s\'ha pogut llegir el fitxer.'); };
+      reader.readAsText(file);
+    }
     function initPersistence(){
       if(!hasClaudeRuntime){
         setSaveStatus('local');
@@ -952,6 +1035,15 @@
       document.getElementById('history-group-filter').addEventListener('change', function(ev){ historyFilter.groupId = ev.target.value; renderHistory(); });
       document.getElementById('undo-btn').addEventListener('click', function(){
         if(state.lastResolvedId) restoreFromHistory(state.lastResolvedId);
+      });
+      document.getElementById('backup-btn').addEventListener('click', exportBackup);
+      document.getElementById('restore-btn').addEventListener('click', function(){
+        document.getElementById('restore-file-input').click();
+      });
+      document.getElementById('restore-file-input').addEventListener('change', function(ev){
+        var file = ev.target.files && ev.target.files[0];
+        if(file) importBackupFile(file);
+        ev.target.value = '';
       });
 
       render();
