@@ -123,7 +123,15 @@
     font-family:var(--font-mono); font-size:12px; color:var(--accent); font-weight:500;
     border:1px solid var(--accent); border-radius:4px; padding:2px 6px; flex:none;
   }
+  .plate-num.has-cap{
+    display:flex; align-items:center; justify-content:center;
+    width:26px; height:26px; padding:0; border-radius:7px; background:var(--surface);
+  }
   .plate-name-wrap{flex:1; min-width:0;}
+  .plate-cap-tag{
+    display:block; font-size:11px; color:var(--ink-on-pastel); opacity:.72;
+    margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
   .plate-name{
     font-family:var(--font-display); font-weight:600; font-size:20px; letter-spacing:0;
     color:var(--ink-on-pastel); display:block;
@@ -737,21 +745,37 @@
     ];
     function paletteFor(idx){ return GROUP_PALETTE[idx % GROUP_PALETTE.length]; }
 
+    function buildPlateHead(g, idx){
+      var pal = paletteFor(idx);
+      var head = el('div', {class:'plate-head'});
+      head.style.background = pal.bg;
+      var capLink = capabilityLinkFor(g.id);
+      var num;
+      if(capLink){
+        num = el('span', {class:'plate-num has-cap', title:'Capacitat: ' + capLink.domain.name + ' › ' + capLink.child.name});
+        var capPal = CAP_PALETTE[capLink.domainIdx % CAP_PALETTE.length];
+        num.style.color = capPal.fg;
+        num.innerHTML = ICONS[capLink.domain.icon] || '';
+      } else {
+        num = el('span', {class:'plate-num', text: String(idx + 1).length < 2 ? '0' + (idx + 1) : String(idx + 1)});
+        num.style.color = pal.fg;
+        num.style.borderColor = pal.fg;
+      }
+      var nameWrap = el('div', {class:'plate-name-wrap'});
+      nameWrap.appendChild(el('span', {class:'plate-name', text: g.name}));
+      if(capLink){
+        nameWrap.appendChild(el('span', {class:'plate-cap-tag', title: capLink.domain.name + ' › ' + capLink.child.name, text: capLink.child.name}));
+      }
+      var renameBtn = el('button', {class:'icon-btn', type:'button', title:'Renombra', 'aria-label':'Renombra el programa ' + g.name, onclick: function(){ startRenameGroup(g.id, nameWrap, g.name); }}, [iconEl('pencil')]);
+      var countBadge = el('span', {class:'count-badge', text: String(g.tasks.length)});
+      head.appendChild(num); head.appendChild(nameWrap); head.appendChild(renameBtn); head.appendChild(countBadge);
+      return head;
+    }
     function renderGroupPanel(g, idx){
       var pal = paletteFor(idx);
       var panel = el('div', {class:'plate'});
       panel.style.borderTopColor = pal.fg;
-      var head = el('div', {class:'plate-head'});
-      head.style.background = pal.bg;
-      var num = el('span', {class:'plate-num', text: String(idx + 1).length < 2 ? '0' + (idx + 1) : String(idx + 1)});
-      num.style.color = pal.fg;
-      num.style.borderColor = pal.fg;
-      var nameWrap = el('div', {class:'plate-name-wrap'});
-      nameWrap.appendChild(el('span', {class:'plate-name', text: g.name}));
-      var renameBtn = el('button', {class:'icon-btn', type:'button', title:'Renombra', 'aria-label':'Renombra el programa ' + g.name, onclick: function(){ startRenameGroup(g.id, nameWrap, g.name); }}, [iconEl('pencil')]);
-      var countBadge = el('span', {class:'count-badge', text: String(g.tasks.length)});
-      head.appendChild(num); head.appendChild(nameWrap); head.appendChild(renameBtn); head.appendChild(countBadge);
-      panel.appendChild(head);
+      panel.appendChild(buildPlateHead(g, idx));
 
       var list = el('div', {class:'task-list'});
       if(g.tasks.length === 0){
@@ -821,6 +845,20 @@
       {bg:'#E1F3F1', fg:'#2E8F86'},
       {bg:'#F5EAF7', fg:'#8B4FA0'}
     ];
+    var GROUP_CAPABILITY_LINKS = {
+      'g-prisma': {domain: 2, child: 2},
+      'g-atlas': {domain: 0, child: 1},
+      'g-atlasx': {domain: 0, child: 2}
+    };
+    function capabilityLinkFor(groupId){
+      var link = GROUP_CAPABILITY_LINKS[groupId];
+      if(!link) return null;
+      var domain = BUSINESS_CAPABILITIES[link.domain];
+      if(!domain) return null;
+      var child = domain.children[link.child];
+      if(!child) return null;
+      return {domain: domain, child: child, domainIdx: link.domain};
+    }
     function renderCapMeter(label, value, max){
       var wrap = el('div', {class:'cap-meter'});
       wrap.appendChild(el('span', {class:'cap-meter-label', text:label}));
@@ -887,19 +925,8 @@
       updateSummary();
     }
     function renderListSection(g, idx){
-      var pal = paletteFor(idx);
       var section = el('div', {class:'list-section'});
-      var head = el('div', {class:'plate-head'});
-      head.style.background = pal.bg;
-      var num = el('span', {class:'plate-num', text: String(idx + 1).length < 2 ? '0' + (idx + 1) : String(idx + 1)});
-      num.style.color = pal.fg;
-      num.style.borderColor = pal.fg;
-      var nameWrap = el('div', {class:'plate-name-wrap'});
-      nameWrap.appendChild(el('span', {class:'plate-name', text: g.name}));
-      var renameBtn = el('button', {class:'icon-btn', type:'button', title:'Renombra', 'aria-label':'Renombra el programa ' + g.name, onclick: function(){ startRenameGroup(g.id, nameWrap, g.name); }}, [iconEl('pencil')]);
-      var countBadge = el('span', {class:'count-badge', text: String(g.tasks.length)});
-      head.appendChild(num); head.appendChild(nameWrap); head.appendChild(renameBtn); head.appendChild(countBadge);
-      section.appendChild(head);
+      section.appendChild(buildPlateHead(g, idx));
       var list = el('div', {class:'task-list list-mode'});
       if(g.tasks.length === 0){
         list.appendChild(el('p', {class:'empty-note', text:'Sense tasques pendents.'}));
