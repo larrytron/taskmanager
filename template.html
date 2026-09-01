@@ -127,7 +127,14 @@
     display:flex; align-items:center; justify-content:center;
     width:26px; height:26px; padding:0; border-radius:7px; background:var(--surface);
   }
+  .plate-num.is-personal{color:#5B6472;}
   .plate-name-wrap{flex:1; min-width:0;}
+  .groups-sections{display:flex; flex-direction:column; gap:22px;}
+  .groups-divider{
+    font-family:var(--font-body); font-weight:700; font-size:11px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--ink-muted); padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+  }
   .plate-cap-tag{
     display:block; font-size:11px; color:var(--ink-on-pastel); opacity:.72;
     margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -488,7 +495,8 @@
       upload:'<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12V3M6.5 6.5L10 3l3.5 3.5"/><path d="M4 15.5h12"/></svg>',
       domainBiz:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7.5" width="14" height="9" rx="1.2"/><path d="M7.5 7.5V5.3A1.3 1.3 0 018.8 4h2.4a1.3 1.3 0 011.3 1.3V7.5"/><path d="M3 11.5h14"/></svg>',
       domainTech:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="8" height="8" rx="1"/><path d="M10 2.5v2.3M10 15.2v2.3M2.5 10h2.3M15.2 10h2.3M4.6 4.6l1.6 1.6M13.8 13.8l1.6 1.6M15.4 4.6l-1.6 1.6M6.2 13.8l-1.6 1.6"/></svg>',
-      domainGov:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l6 2.2v4.4c0 4-2.5 7-6 8.4-3.5-1.4-6-4.4-6-8.4V4.7L10 2.5z"/></svg>'
+      domainGov:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l6 2.2v4.4c0 4-2.5 7-6 8.4-3.5-1.4-6-4.4-6-8.4V4.7L10 2.5z"/></svg>',
+      personal:'<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/></svg>'
     };
 
     function el(tag, opts, children){
@@ -757,9 +765,8 @@
         num.style.color = capPal.fg;
         num.innerHTML = ICONS[capLink.domain.icon] || '';
       } else {
-        num = el('span', {class:'plate-num', text: String(idx + 1).length < 2 ? '0' + (idx + 1) : String(idx + 1)});
-        num.style.color = pal.fg;
-        num.style.borderColor = pal.fg;
+        num = el('span', {class:'plate-num has-cap is-personal', title:'Tasca personal — no vinculada a cap capacitat'});
+        num.innerHTML = ICONS.personal;
       }
       var nameWrap = el('div', {class:'plate-name-wrap'});
       nameWrap.appendChild(el('span', {class:'plate-name', text: g.name}));
@@ -916,12 +923,30 @@
       if(state.settings.viewMode === 'list') renderGroupsListView();
       else renderGroupsCards();
     }
+    function splitGroupsByCapability(){
+      var linked = [], personal = [];
+      state.groups.forEach(function(g, idx){
+        (capabilityLinkFor(g.id) ? linked : personal).push({g:g, idx:idx});
+      });
+      return {linked: linked, personal: personal};
+    }
     function renderGroupsCards(){
       var container = document.getElementById('groups');
-      container.className = 'groups-grid';
+      container.className = 'groups-sections';
       container.innerHTML = '';
-      state.groups.forEach(function(g, idx){ container.appendChild(renderGroupPanel(g, idx)); });
-      container.appendChild(renderAddGroupPlate());
+      var split = splitGroupsByCapability();
+      if(split.linked.length){
+        var linkedGrid = el('div', {class:'groups-grid'});
+        split.linked.forEach(function(item){ linkedGrid.appendChild(renderGroupPanel(item.g, item.idx)); });
+        container.appendChild(linkedGrid);
+      }
+      if(split.linked.length && split.personal.length){
+        container.appendChild(el('div', {class:'groups-divider', text:'Personal'}));
+      }
+      var personalGrid = el('div', {class:'groups-grid'});
+      split.personal.forEach(function(item){ personalGrid.appendChild(renderGroupPanel(item.g, item.idx)); });
+      personalGrid.appendChild(renderAddGroupPlate());
+      container.appendChild(personalGrid);
       updateSummary();
     }
     function renderListSection(g, idx){
@@ -942,7 +967,12 @@
       var container = document.getElementById('groups');
       container.className = 'groups-list';
       container.innerHTML = '';
-      state.groups.forEach(function(g, idx){ container.appendChild(renderListSection(g, idx)); });
+      var split = splitGroupsByCapability();
+      split.linked.forEach(function(item){ container.appendChild(renderListSection(item.g, item.idx)); });
+      if(split.linked.length && split.personal.length){
+        container.appendChild(el('div', {class:'groups-divider', text:'Personal'}));
+      }
+      split.personal.forEach(function(item){ container.appendChild(renderListSection(item.g, item.idx)); });
       container.appendChild(renderAddGroupPlate());
       updateSummary();
     }
