@@ -1016,8 +1016,8 @@
       container.innerHTML = '';
       var split = splitGroupsByCapability();
       var linkedGrid = el('div', {class:'groups-grid'});
-      linkedGrid.appendChild(renderAddLinkedGroupPlate());
       split.linked.forEach(function(item){ linkedGrid.appendChild(renderGroupPanel(item.g, item.idx)); });
+      linkedGrid.appendChild(renderAddLinkedGroupPlate());
       container.appendChild(linkedGrid);
       container.appendChild(renderPersonalDivider());
       if(!state.settings.personalCollapsed){
@@ -1047,8 +1047,8 @@
       container.className = 'groups-list';
       container.innerHTML = '';
       var split = splitGroupsByCapability();
-      container.appendChild(renderAddLinkedGroupPlate());
       split.linked.forEach(function(item){ container.appendChild(renderListSection(item.g, item.idx)); });
+      container.appendChild(renderAddLinkedGroupPlate());
       container.appendChild(renderPersonalDivider());
       if(!state.settings.personalCollapsed){
         split.personal.forEach(function(item){ container.appendChild(renderListSection(item.g, item.idx)); });
