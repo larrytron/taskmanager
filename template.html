@@ -16,6 +16,7 @@
     --good:#4C9B74; --good-soft:#E3F4EA;
     --gone:#9B6B95; --gone-soft:#F3E7F1;
     --today:#C48A1F; --today-soft:#FBEFD8;
+    --ink-on-pastel:#22303F;
     --shadow:0 1px 2px rgba(43,49,66,.06), 0 8px 24px rgba(43,49,66,.07);
     --radius:10px;
     --font-display:"Manrope","Segoe UI",sans-serif;
@@ -125,7 +126,7 @@
   .plate-name-wrap{flex:1; min-width:0;}
   .plate-name{
     font-family:var(--font-display); font-weight:600; font-size:20px; letter-spacing:0;
-    color:var(--ink); display:block;
+    color:var(--ink-on-pastel); display:block;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .rename-input{
@@ -293,6 +294,57 @@
     .topbar{flex-direction:column; align-items:flex-start;}
     .topbar-right{align-items:flex-start;}
   }
+
+  .capabilities-header{margin-bottom:16px;}
+  .capabilities-unit{
+    display:flex; align-items:center; gap:8px;
+    font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--ink);
+  }
+  .capabilities-note{display:block; margin-top:4px; font-size:12.5px; color:var(--ink-muted);}
+  .capabilities-list{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:18px;
+    align-items:start;
+  }
+  .cap-domain{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    border-top:4px solid var(--accent); box-shadow:var(--shadow); overflow:hidden;
+  }
+  .cap-domain-head{padding:14px 16px; border-bottom:1px solid var(--line);}
+  .cap-domain-top{display:flex; align-items:center; gap:10px;}
+  .cap-domain-icon{
+    width:30px; height:30px; border-radius:8px; background:var(--surface);
+    display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .cap-domain-name{
+    font-family:var(--font-display); font-weight:700; font-size:15.5px; color:var(--ink-on-pastel);
+    flex:1; min-width:0;
+  }
+  .cap-domain-level{
+    font-family:var(--font-mono); font-size:10.5px; color:var(--ink-muted);
+    border:1px solid var(--line); background:var(--bg); border-radius:4px; padding:1px 6px; flex:none;
+  }
+  .cap-metrics{display:flex; flex-wrap:wrap; gap:12px; margin-top:10px;}
+  .cap-meter{display:flex; align-items:center; gap:6px;}
+  .cap-meter-label{font-size:10.5px; color:var(--ink-muted); font-weight:600; letter-spacing:.02em;}
+  .cap-meter-dots{display:flex; gap:2px;}
+  .cap-dot{width:6px; height:6px; border-radius:50%; background:var(--line); flex:none;}
+  .cap-dot.filled{background:var(--accent-deep);}
+  .cap-estat-badge{
+    font-family:var(--font-mono); font-size:10.5px; font-weight:600; color:var(--ink-muted);
+    background:var(--bg); border:1px solid var(--line); border-radius:999px; padding:2px 8px;
+  }
+  .cap-children{display:flex; flex-direction:column;}
+  .cap-child{
+    display:flex; align-items:center; gap:10px; padding:10px 16px;
+    border-bottom:1px solid var(--line);
+  }
+  .cap-child:last-child{border-bottom:none;}
+  .cap-child-bullet{width:6px; height:6px; border-radius:50%; flex:none;}
+  .cap-child-name{
+    font-family:var(--font-body); font-size:13px; color:var(--ink); flex:1; min-width:0;
+    line-height:1.35;
+  }
+  .cap-child-metrics{display:flex; gap:10px; flex:none;}
 </style>
 </head>
 <body>
@@ -309,6 +361,7 @@
             <button type="button" id="tab-pending" class="tab-btn active">Pendents</button>
             <button type="button" id="tab-today" class="tab-btn">Avui</button>
             <button type="button" id="tab-history" class="tab-btn">Historial</button>
+            <button type="button" id="tab-capabilities" class="tab-btn">Capacitats</button>
           </div>
           <button type="button" id="undo-btn" class="btn undo-btn" hidden>
             <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8H12.5A3.5 3.5 0 0116 11.5V11.5A3.5 3.5 0 0112.5 15H8"/><path d="M8 5L5 8L8 11"/></svg>
@@ -343,6 +396,14 @@
         <span class="summary-chip today"><b id="summary-today">0</b><span>per avui</span></span>
       </div>
       <div id="today-list" class="today-list"></div>
+    </div>
+
+    <div id="view-capabilities" class="view" hidden>
+      <div class="capabilities-header">
+        <span class="capabilities-unit">Direcció d'Arquitectures</span>
+        <span class="capabilities-note">Catàleg de Business Capabilities (L1/L2), a mode de referència — encara no vinculat als programes de dalt.</span>
+      </div>
+      <div id="capabilities-list" class="capabilities-list"></div>
     </div>
 
     <div id="view-history" class="view" hidden>
@@ -416,7 +477,10 @@
       undo:'<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8H12.5A3.5 3.5 0 0116 11.5V11.5A3.5 3.5 0 0112.5 15H8"/><path d="M8 5L5 8L8 11"/></svg>',
       download:'<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v9M6.5 8.5L10 12l3.5-3.5"/><path d="M4 15.5h12"/></svg>',
       star:'<svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M10 2.8l2.15 4.53 4.95.62-3.6 3.5.92 4.9L10 13.9l-4.42 2.45.92-4.9-3.6-3.5 4.95-.62L10 2.8z"/></svg>',
-      upload:'<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12V3M6.5 6.5L10 3l3.5 3.5"/><path d="M4 15.5h12"/></svg>'
+      upload:'<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12V3M6.5 6.5L10 3l3.5 3.5"/><path d="M4 15.5h12"/></svg>',
+      domainBiz:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7.5" width="14" height="9" rx="1.2"/><path d="M7.5 7.5V5.3A1.3 1.3 0 018.8 4h2.4a1.3 1.3 0 011.3 1.3V7.5"/><path d="M3 11.5h14"/></svg>',
+      domainTech:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="8" height="8" rx="1"/><path d="M10 2.5v2.3M10 15.2v2.3M2.5 10h2.3M15.2 10h2.3M4.6 4.6l1.6 1.6M13.8 13.8l1.6 1.6M15.4 4.6l-1.6 1.6M6.2 13.8l-1.6 1.6"/></svg>',
+      domainGov:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l6 2.2v4.4c0 4-2.5 7-6 8.4-3.5-1.4-6-4.4-6-8.4V4.7L10 2.5z"/></svg>'
     };
 
     function el(tag, opts, children){
@@ -721,6 +785,95 @@
       return wrap;
     }
 
+    var BUSINESS_CAPABILITIES = [
+      {
+        name: "Gestió de l'Arquitectura Empresarial", icon: 'domainBiz',
+        maduresa: 3, complexitat: 5, estat: '++',
+        children: [
+          {name: "Governança del Model d'Arquitectura Empresarial", maduresa: 3, complexitat: 1, estat: '++'},
+          {name: "Implementació del Model d'Arquitectura Empresarial", maduresa: 3, complexitat: 1, estat: '++'},
+          {name: "Aprovisionament Productes Transversals d'Arq. Empresarial", maduresa: 2, complexitat: 1, estat: '+++'},
+          {name: "Governança del Model Orientat a Producte", maduresa: 2, complexitat: 1, estat: '++'}
+        ]
+      },
+      {
+        name: "Gestió de l'Arquitectura Tecnològica", icon: 'domainTech',
+        maduresa: 2, complexitat: 4, estat: '++',
+        children: [
+          {name: "Governança del Model d'Arquitectura Tecnològica", maduresa: 2, complexitat: 1, estat: '++'},
+          {name: "Implementació del Model d'Arquitectura Tecnològica", maduresa: 2, complexitat: 1, estat: '++'},
+          {name: "Aprovisionament Productes Transversals d'Arq. Tecnològica", maduresa: 3, complexitat: 1, estat: '++'}
+        ]
+      },
+      {
+        name: "Governança dels Actius Tecnològics", icon: 'domainGov',
+        maduresa: 1, complexitat: 5, estat: '++',
+        children: [
+          {name: 'Gestió del Metamodel', maduresa: 1, complexitat: 1, estat: '++'},
+          {name: 'Gestió del Repositori Tecnològic', maduresa: 1, complexitat: 1, estat: '++'},
+          {name: 'Gestió del Cicle de Vida i Roadmap Tecnològic', maduresa: 2, complexitat: 1, estat: '++'},
+          {name: "Governança de l'ALM", maduresa: 1, complexitat: 1, estat: '++'}
+        ]
+      }
+    ];
+    var CAP_PALETTE = [
+      {bg:'#E8ECFB', fg:'#4A5FBE'},
+      {bg:'#E1F3F1', fg:'#2E8F86'},
+      {bg:'#F5EAF7', fg:'#8B4FA0'}
+    ];
+    function renderCapMeter(label, value, max){
+      var wrap = el('div', {class:'cap-meter'});
+      wrap.appendChild(el('span', {class:'cap-meter-label', text:label}));
+      var dots = el('span', {class:'cap-meter-dots'});
+      for(var i = 0; i < max; i++){
+        dots.appendChild(el('span', {class:'cap-dot' + (i < value ? ' filled' : '')}));
+      }
+      wrap.appendChild(dots);
+      return wrap;
+    }
+    function renderCapChild(child, pal){
+      var row = el('div', {class:'cap-child'});
+      var bullet = el('span', {class:'cap-child-bullet'});
+      bullet.style.background = pal.fg;
+      var name = el('span', {class:'cap-child-name', text: child.name});
+      var metrics = el('div', {class:'cap-child-metrics'});
+      metrics.appendChild(renderCapMeter('M', child.maduresa, 5));
+      metrics.appendChild(renderCapMeter('C', child.complexitat, 5));
+      metrics.appendChild(el('span', {class:'cap-estat-badge', text: child.estat}));
+      row.appendChild(bullet); row.appendChild(name); row.appendChild(metrics);
+      return row;
+    }
+    function renderCapDomain(domain, idx){
+      var pal = CAP_PALETTE[idx % CAP_PALETTE.length];
+      var card = el('div', {class:'cap-domain'});
+      card.style.borderTopColor = pal.fg;
+      var head = el('div', {class:'cap-domain-head'});
+      head.style.background = pal.bg;
+      var top = el('div', {class:'cap-domain-top'});
+      var iconWrap = el('span', {class:'cap-domain-icon'});
+      iconWrap.style.color = pal.fg;
+      iconWrap.innerHTML = ICONS[domain.icon] || '';
+      var name = el('span', {class:'cap-domain-name', text: domain.name});
+      var level = el('span', {class:'cap-domain-level', text:'L1'});
+      top.appendChild(iconWrap); top.appendChild(name); top.appendChild(level);
+      head.appendChild(top);
+      var metrics = el('div', {class:'cap-metrics'});
+      metrics.appendChild(renderCapMeter('Maduresa', domain.maduresa, 5));
+      metrics.appendChild(renderCapMeter('Complexitat', domain.complexitat, 5));
+      metrics.appendChild(el('span', {class:'cap-estat-badge', text:'Estat ' + domain.estat}));
+      head.appendChild(metrics);
+      card.appendChild(head);
+      var children = el('div', {class:'cap-children'});
+      domain.children.forEach(function(child){ children.appendChild(renderCapChild(child, pal)); });
+      card.appendChild(children);
+      return card;
+    }
+    function renderCapabilities(){
+      var container = document.getElementById('capabilities-list');
+      container.innerHTML = '';
+      BUSINESS_CAPABILITIES.forEach(function(domain, idx){ container.appendChild(renderCapDomain(domain, idx)); });
+    }
+
     function renderGroups(){
       if(state.settings.viewMode === 'list') renderGroupsListView();
       else renderGroupsCards();
@@ -934,11 +1087,14 @@
       document.getElementById('view-pending').hidden = name !== 'pending';
       document.getElementById('view-today').hidden = name !== 'today';
       document.getElementById('view-history').hidden = name !== 'history';
+      document.getElementById('view-capabilities').hidden = name !== 'capabilities';
       document.getElementById('tab-pending').classList.toggle('active', name === 'pending');
       document.getElementById('tab-today').classList.toggle('active', name === 'today');
       document.getElementById('tab-history').classList.toggle('active', name === 'history');
+      document.getElementById('tab-capabilities').classList.toggle('active', name === 'capabilities');
       if(name === 'history') renderHistory();
       if(name === 'today') renderTodayView();
+      if(name === 'capabilities') renderCapabilities();
     }
 
     function render(){
@@ -1113,6 +1269,7 @@
       document.getElementById('tab-pending').addEventListener('click', function(){ showView('pending'); });
       document.getElementById('tab-today').addEventListener('click', function(){ showView('today'); });
       document.getElementById('tab-history').addEventListener('click', function(){ showView('history'); });
+      document.getElementById('tab-capabilities').addEventListener('click', function(){ showView('capabilities'); });
       document.getElementById('detail-overlay').addEventListener('click', function(ev){ if(ev.target.id === 'detail-overlay') closeDetail(); });
       document.addEventListener('keydown', function(ev){ if(ev.key === 'Escape' && !document.getElementById('detail-overlay').hidden) closeDetail(); });
       document.getElementById('history-status-filter').addEventListener('change', function(ev){ historyFilter.status = ev.target.value; renderHistory(); });
