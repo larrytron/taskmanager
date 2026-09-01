@@ -720,7 +720,7 @@
       var complete = el('button', {class:'complete-btn', type:'button', title:'Marca com a completada', 'aria-label':'Marca com a completada: ' + t.title, onclick: function(){ completeTask(t.id); }}, [iconEl('check')]);
       var marked = isToday(t);
       var todayBtn = el('button', {class:'today-btn' + (marked ? ' is-today' : ''), type:'button', title: marked ? 'Treu d\'avui' : 'Marca per avui', 'aria-label': (marked ? 'Treu d\'avui: ' : 'Marca per avui: ') + t.title, onclick: function(){ toggleToday(t.id); }}, [iconEl('star')]);
-      var titleBtn = el('button', {class:'task-title', type:'button'});
+      var titleBtn = el('button', {class:'task-title', type:'button', title: t.title});
       titleBtn.appendChild(document.createTextNode(t.title));
       titleBtn.addEventListener('click', function(){ openDetail(t.id); });
       var right = el('div', {class:'task-right'});
@@ -981,7 +981,7 @@
       var row = el('div', {class:'task-row today-row', 'data-task-id': t.id});
       var complete = el('button', {class:'complete-btn', type:'button', title:'Marca com a completada', 'aria-label':'Marca com a completada: ' + t.title, onclick: function(){ completeTask(t.id); }}, [iconEl('check')]);
       var todayBtn = el('button', {class:'today-btn is-today', type:'button', title:'Treu d\'avui', 'aria-label':'Treu d\'avui: ' + t.title, onclick: function(){ toggleToday(t.id); }}, [iconEl('star')]);
-      var titleBtn = el('button', {class:'task-title', type:'button'});
+      var titleBtn = el('button', {class:'task-title', type:'button', title: t.title});
       titleBtn.appendChild(document.createTextNode(t.title));
       titleBtn.addEventListener('click', function(){ openDetail(t.id); });
       var right = el('div', {class:'task-right'});
@@ -1126,7 +1126,7 @@
         var row = el('div', {class:'history-row', tabindex:'0'});
         row.appendChild(el('span', {class:'status-chip ' + (h.status === 'completed' ? 'good' : 'gone'), text: h.status === 'completed' ? 'Completada' : 'Eliminada'}));
         var main = el('div', {class:'history-main'});
-        main.appendChild(el('span', {class:'history-title', text: h.title}));
+        main.appendChild(el('span', {class:'history-title', text: h.title, title: h.title}));
         main.appendChild(el('span', {class:'history-group', text: h.groupName}));
         row.appendChild(main);
         var dates = el('div', {class:'history-dates'});
