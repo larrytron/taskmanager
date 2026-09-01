@@ -270,6 +270,14 @@
     font-family:var(--font-body); font-size:13px; padding:7px 9px; border:1px solid var(--line);
     border-radius:6px; background:var(--surface); color:var(--ink);
   }
+  .cap-edit-inline{display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;}
+  .cap-edit-inline select{
+    font-family:var(--font-body); font-size:12.5px; padding:5px 7px; border:1px solid var(--line);
+    border-radius:6px; background:var(--surface); color:var(--ink); flex:1; min-width:140px;
+  }
+  .cap-edit-inline select:disabled{opacity:.5;}
+  .cap-edit-actions{display:flex; gap:4px; flex:none;}
+  .cap-edit-actions .icon-btn{background:var(--surface);}
 
   .history-toolbar{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; align-items:center;}
   .history-toolbar select{
@@ -512,7 +520,8 @@
       domainTech:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="8" height="8" rx="1"/><path d="M10 2.5v2.3M10 15.2v2.3M2.5 10h2.3M15.2 10h2.3M4.6 4.6l1.6 1.6M13.8 13.8l1.6 1.6M15.4 4.6l-1.6 1.6M6.2 13.8l-1.6 1.6"/></svg>',
       domainGov:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l6 2.2v4.4c0 4-2.5 7-6 8.4-3.5-1.4-6-4.4-6-8.4V4.7L10 2.5z"/></svg>',
       personal:'<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/></svg>',
-      chevronDown:'<svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7.5l5 5 5-5"/></svg>'
+      chevronDown:'<svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7.5l5 5 5-5"/></svg>',
+      link:'<svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8.3 11.7l3.4-3.4"/><path d="M6.8 13.6L4.9 11.7a2.9 2.9 0 010-4.1l1.6-1.6a2.9 2.9 0 014.1 0"/><path d="M13.2 6.4l1.9 1.9a2.9 2.9 0 010 4.1l-1.6 1.6a2.9 2.9 0 01-4.1 0"/></svg>'
     };
 
     function el(tag, opts, children){
@@ -625,6 +634,12 @@
     }
     function addGroupWithCap(name, domainIdx, childIdx){
       state.groups.push({id: genId('g'), name: name, tasks: [], cap: {domainIdx: domainIdx, childIdx: childIdx}});
+      save();
+    }
+    function setGroupCapability(groupId, capOrNull){
+      var g = state.groups.find(function(x){ return x.id === groupId; });
+      if(!g) return;
+      g.cap = capOrNull;
       save();
     }
     function togglePersonalCollapsed(){
@@ -781,6 +796,11 @@
       var pal = paletteFor(idx);
       var head = el('div', {class:'plate-head'});
       head.style.background = pal.bg;
+      fillPlateHead(head, g, idx);
+      return head;
+    }
+    function fillPlateHead(head, g, idx){
+      head.innerHTML = '';
       var capLink = capabilityLinkFor(g.id);
       var num;
       if(capLink){
@@ -798,9 +818,52 @@
         nameWrap.appendChild(el('span', {class:'plate-cap-tag', title: capLink.domain.name + ' › ' + capLink.child.name, text: capLink.child.name}));
       }
       var renameBtn = el('button', {class:'icon-btn', type:'button', title:'Renombra', 'aria-label':'Renombra el programa ' + g.name, onclick: function(){ startRenameGroup(g.id, nameWrap, g.name); }}, [iconEl('pencil')]);
+      var capBtn = el('button', {class:'icon-btn', type:'button', title:'Edita la capacitat vinculada', 'aria-label':'Edita la capacitat vinculada de ' + g.name, onclick: function(){ startEditCapability(head, g, idx); }}, [iconEl('link')]);
       var countBadge = el('span', {class:'count-badge', text: String(g.tasks.length)});
-      head.appendChild(num); head.appendChild(nameWrap); head.appendChild(renameBtn); head.appendChild(countBadge);
-      return head;
+      head.appendChild(num); head.appendChild(nameWrap); head.appendChild(renameBtn); head.appendChild(capBtn); head.appendChild(countBadge);
+    }
+    function startEditCapability(head, g, idx){
+      head.innerHTML = '';
+      var current = capabilityLinkFor(g.id);
+      var wrap = el('div', {class:'cap-edit-inline'});
+      var domainSel = el('select', {});
+      domainSel.appendChild(el('option', {value:'', text:'Personal (sense capacitat)'}));
+      BUSINESS_CAPABILITIES.forEach(function(domain, i){
+        domainSel.appendChild(el('option', {value:String(i), text: domain.name}));
+      });
+      var childSel = el('select', {});
+      function populateChildren(selectedChildIdx){
+        childSel.innerHTML = '';
+        if(domainSel.value === ''){ childSel.disabled = true; return; }
+        childSel.disabled = false;
+        var domain = BUSINESS_CAPABILITIES[Number(domainSel.value)];
+        domain.children.forEach(function(child, i){
+          childSel.appendChild(el('option', {value:String(i), text: child.name}));
+        });
+        if(typeof selectedChildIdx === 'number') childSel.value = String(selectedChildIdx);
+      }
+      if(current){
+        domainSel.value = String(current.domainIdx);
+        var domain0 = BUSINESS_CAPABILITIES[current.domainIdx];
+        var childIdx0 = domain0.children.indexOf(current.child);
+        populateChildren(childIdx0 >= 0 ? childIdx0 : 0);
+      } else {
+        domainSel.value = '';
+        populateChildren();
+      }
+      domainSel.addEventListener('change', function(){ populateChildren(); });
+      var actions = el('div', {class:'cap-edit-actions'});
+      var cancelBtn = el('button', {class:'icon-btn', type:'button', title:'Cancel·la', 'aria-label':'Cancel·la l\'edició de capacitat', onclick: function(){ fillPlateHead(head, g, idx); }}, [iconEl('x')]);
+      var saveBtn = el('button', {class:'icon-btn', type:'button', title:'Desa', 'aria-label':'Desa la capacitat', onclick: function(){
+        if(domainSel.value === ''){
+          setGroupCapability(g.id, null);
+        } else {
+          setGroupCapability(g.id, {domainIdx: Number(domainSel.value), childIdx: Number(childSel.value)});
+        }
+      }}, [iconEl('check')]);
+      actions.appendChild(cancelBtn); actions.appendChild(saveBtn);
+      wrap.appendChild(domainSel); wrap.appendChild(childSel); wrap.appendChild(actions);
+      head.appendChild(wrap);
     }
     function renderGroupPanel(g, idx){
       var pal = paletteFor(idx);
@@ -883,10 +946,12 @@
     };
     function capabilityLinkFor(groupId){
       var g = state.groups.find(function(x){ return x.id === groupId; });
-      if(g && g.cap){
+      if(g && Object.prototype.hasOwnProperty.call(g, 'cap')){
+        if(!g.cap) return null;
         var domainD = BUSINESS_CAPABILITIES[g.cap.domainIdx];
         var childD = domainD && domainD.children[g.cap.childIdx];
         if(domainD && childD) return {domain: domainD, child: childD, domainIdx: g.cap.domainIdx};
+        return null;
       }
       var link = GROUP_CAPABILITY_LINKS[groupId];
       if(!link) return null;
