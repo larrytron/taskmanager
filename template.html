@@ -142,8 +142,9 @@
   .groups-divider-chevron{display:flex; color:#F3F4F7; transition:transform .15s ease; flex:none;}
   .groups-divider-chevron.collapsed{transform:rotate(-90deg);}
   .plate-cap-tag{
-    display:block; font-size:11px; color:var(--ink-on-pastel); opacity:.72;
-    margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    display:inline-block; font-family:var(--font-body); font-size:12px; font-weight:700;
+    margin-top:5px; padding:3px 9px; border-radius:999px; max-width:100%;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .plate-name{
     font-family:var(--font-display); font-weight:600; font-size:20px; letter-spacing:0;
@@ -203,6 +204,11 @@
   .today-group-label{
     font-family:var(--font-body); font-weight:600; font-size:11px; padding:3px 8px;
     border-radius:999px; flex:none; white-space:nowrap;
+  }
+  .today-cap-label{
+    font-family:var(--font-body); font-weight:700; font-size:11px; padding:3px 8px;
+    border-radius:999px; flex:none; white-space:nowrap; max-width:160px;
+    overflow:hidden; text-overflow:ellipsis;
   }
   .today-row{gap:8px;}
   .today-list{
@@ -296,9 +302,15 @@
   }
   .status-chip.good{color:var(--good); background:var(--good-soft);}
   .status-chip.gone{color:var(--gone); background:var(--gone-soft);}
-  .history-main{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+  .history-main{flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;}
   .history-title{font-weight:600; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .history-meta-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
   .history-group{font-size:12px; color:var(--ink-muted); font-family:var(--font-mono);}
+  .history-cap-label{
+    font-family:var(--font-body); font-weight:700; font-size:10.5px; padding:2px 8px;
+    border-radius:999px; flex:none; white-space:nowrap; max-width:220px;
+    overflow:hidden; text-overflow:ellipsis;
+  }
   .history-dates{display:flex; flex-direction:column; align-items:flex-end; gap:2px; font-family:var(--font-mono); font-size:11px; color:var(--ink-muted); flex:none;}
 
   .overlay{
@@ -379,7 +391,7 @@
   .cap-child:last-child{border-bottom:none;}
   .cap-child-bullet{width:6px; height:6px; border-radius:50%; flex:none;}
   .cap-child-name{
-    font-family:var(--font-body); font-size:13px; color:var(--ink); flex:1; min-width:0;
+    font-family:var(--font-body); font-size:14px; color:var(--ink); flex:1; min-width:0;
     line-height:1.35;
   }
   .cap-child-metrics{display:flex; gap:10px; flex:none;}
@@ -815,7 +827,9 @@
       var nameWrap = el('div', {class:'plate-name-wrap'});
       nameWrap.appendChild(el('span', {class:'plate-name', text: g.name}));
       if(capLink){
-        nameWrap.appendChild(el('span', {class:'plate-cap-tag', title: capLink.domain.name + ' › ' + capLink.child.name, text: capLink.child.name}));
+        var capTag = el('span', {class:'plate-cap-tag', title: capLink.domain.name + ' › ' + capLink.child.name, text: capLink.child.name});
+        capTag.style.background = capPal.bg; capTag.style.color = capPal.fg;
+        nameWrap.appendChild(capTag);
       }
       var renameBtn = el('button', {class:'icon-btn', type:'button', title:'Renombra', 'aria-label':'Renombra el programa ' + g.name, onclick: function(){ startRenameGroup(g.id, nameWrap, g.name); }}, [iconEl('pencil')]);
       var capBtn = el('button', {class:'icon-btn', type:'button', title:'Edita la capacitat vinculada', 'aria-label':'Edita la capacitat vinculada de ' + g.name, onclick: function(){ startEditCapability(head, g, idx); }}, [iconEl('link')]);
@@ -1130,6 +1144,13 @@
       titleBtn.appendChild(document.createTextNode(t.title));
       titleBtn.addEventListener('click', function(){ openDetail(t.id); });
       var right = el('div', {class:'task-right'});
+      var capLink = capabilityLinkFor(g.id);
+      if(capLink){
+        var capPal = CAP_PALETTE[capLink.domainIdx % CAP_PALETTE.length];
+        var capLabel = el('span', {class:'today-cap-label', title: capLink.domain.name + ' › ' + capLink.child.name, text: capLink.child.name});
+        capLabel.style.background = capPal.bg; capLabel.style.color = capPal.fg;
+        right.appendChild(capLabel);
+      }
       var groupLabel = el('span', {class:'today-group-label', text: g.name});
       groupLabel.style.background = pal.bg; groupLabel.style.color = pal.fg;
       right.appendChild(groupLabel);
@@ -1272,7 +1293,16 @@
         row.appendChild(el('span', {class:'status-chip ' + (h.status === 'completed' ? 'good' : 'gone'), text: h.status === 'completed' ? 'Completada' : 'Eliminada'}));
         var main = el('div', {class:'history-main'});
         main.appendChild(el('span', {class:'history-title', text: h.title, title: h.title}));
-        main.appendChild(el('span', {class:'history-group', text: h.groupName}));
+        var metaRow = el('div', {class:'history-meta-row'});
+        metaRow.appendChild(el('span', {class:'history-group', text: h.groupName}));
+        var hCapLink = capabilityLinkFor(h.groupId);
+        if(hCapLink){
+          var hCapPal = CAP_PALETTE[hCapLink.domainIdx % CAP_PALETTE.length];
+          var hCapBadge = el('span', {class:'history-cap-label', title: hCapLink.domain.name + ' › ' + hCapLink.child.name, text: hCapLink.child.name});
+          hCapBadge.style.background = hCapPal.bg; hCapBadge.style.color = hCapPal.fg;
+          metaRow.appendChild(hCapBadge);
+        }
+        main.appendChild(metaRow);
         row.appendChild(main);
         var dates = el('div', {class:'history-dates'});
         dates.appendChild(el('span', {text: 'Creada ' + formatDate(h.createdAt.slice(0,10))}));
