@@ -396,6 +396,84 @@
     line-height:1.35;
   }
   .cap-child-metrics{display:flex; gap:10px; flex:none;}
+
+  .roadmap-wrap{
+    overflow-x:auto; overflow-y:hidden; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:18px;
+  }
+  .roadmap-table{border-collapse:collapse; width:100%; min-width:760px;}
+  .roadmap-corner{
+    background:#15171C; color:#F3F4F7; font-family:var(--font-body); font-weight:700;
+    font-size:12px; letter-spacing:.05em; text-transform:uppercase; text-align:left;
+    padding:12px 16px; min-width:230px; position:sticky; left:0; z-index:2;
+  }
+  .roadmap-corner-sub{
+    background:#15171C; min-width:230px; position:sticky; left:0; z-index:2;
+    border-right:1px solid rgba(255,255,255,.1);
+  }
+  .roadmap-year{
+    color:#fff; font-family:var(--font-body); font-weight:700; font-size:13px;
+    text-align:center; padding:9px 10px; letter-spacing:.03em;
+  }
+  .roadmap-quarter{
+    background:var(--surface-2); color:var(--ink-muted); font-family:var(--font-mono);
+    font-weight:600; font-size:11px; text-align:center; padding:7px 6px;
+    border-right:1px dashed var(--line);
+  }
+  .roadmap-quarter:last-child{border-right:none;}
+  .roadmap-label-td{
+    background:var(--surface); position:sticky; left:0; z-index:1;
+    border-right:1px solid var(--line); border-bottom:1px solid var(--line);
+  }
+  .roadmap-label-cell{display:flex; align-items:center; gap:10px; padding:10px 12px; min-width:230px;}
+  .roadmap-icon{
+    width:32px; height:32px; border-radius:8px; display:flex; align-items:center;
+    justify-content:center; flex:none;
+  }
+  .roadmap-obj-titlewrap{flex:1; min-width:0;}
+  .roadmap-obj-title{
+    font-family:var(--font-body); font-weight:600; font-size:13px; color:var(--ink);
+    line-height:1.3; display:block;
+  }
+  .roadmap-row-actions{display:flex; gap:1px; flex:none; opacity:.3;}
+  .roadmap-label-cell:hover .roadmap-row-actions{opacity:1;}
+  .roadmap-cell{
+    position:relative; text-align:center; padding:12px 6px; border-right:1px dashed var(--line);
+    border-bottom:1px solid var(--line); min-width:74px;
+  }
+  .roadmap-cell:last-child{border-right:none;}
+  .roadmap-dot-wrap{display:inline-flex; flex-direction:column; align-items:center;}
+  .roadmap-dot{width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
+  .roadmap-dot-inner{width:10px; height:10px; border-radius:50%;}
+  .roadmap-dot-tail{width:0; height:12px; border-left:2px dotted; margin-top:2px; opacity:.55;}
+  .roadmap-timeline-row td{border-bottom:none; padding-top:18px; padding-bottom:12px;}
+  .roadmap-timeline-cell{border-top:3px solid var(--line); border-right:none;}
+  .roadmap-timeline-dot{
+    display:inline-block; width:13px; height:13px; border-radius:50%; margin-top:-9.5px;
+    box-shadow:0 0 0 3px var(--surface);
+  }
+  .roadmap-timeline-label{
+    display:inline-block; margin-top:9px; font-family:var(--font-mono); font-weight:700;
+    font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; white-space:nowrap;
+    color:#fff; padding:2px 8px; border-radius:999px;
+  }
+  .roadmap-arrow{
+    position:absolute; right:-6px; top:50%; width:0; height:0;
+    transform:translateY(calc(-50% - 9px)); border-style:solid; border-width:5px 0 5px 8px;
+    border-color:transparent transparent transparent var(--line);
+  }
+  .roadmap-edit-cell{display:flex; flex-direction:column; gap:6px; padding:10px 12px; min-width:260px;}
+  .roadmap-edit-cell input[type="text"]{
+    font-family:var(--font-body); font-size:13px; padding:6px 8px; border:1px solid var(--line);
+    border-radius:6px; background:var(--surface); color:var(--ink); width:100%;
+  }
+  .objective-fields-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .objective-fields-row .cap-field{flex:1; min-width:100px; margin-bottom:0;}
+  .roadmap-edit-cell .objective-fields-row select{
+    font-family:var(--font-body); font-size:12.5px; padding:5px 7px; border:1px solid var(--line);
+    border-radius:6px; background:var(--surface); color:var(--ink); width:100%;
+  }
+  .roadmap-edit-cell .cap-edit-actions{justify-content:flex-end;}
 </style>
 </head>
 <body>
@@ -413,6 +491,7 @@
             <button type="button" id="tab-today" class="tab-btn">Avui</button>
             <button type="button" id="tab-history" class="tab-btn">Historial</button>
             <button type="button" id="tab-capabilities" class="tab-btn">Capacitats</button>
+            <button type="button" id="tab-objectives" class="tab-btn">Objectius</button>
           </div>
           <button type="button" id="undo-btn" class="btn undo-btn" hidden>
             <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8H12.5A3.5 3.5 0 0116 11.5V11.5A3.5 3.5 0 0112.5 15H8"/><path d="M8 5L5 8L8 11"/></svg>
@@ -455,6 +534,14 @@
         <span class="capabilities-note">Catàleg de Business Capabilities (L1/L2), a mode de referència — encara no vinculat als programes de dalt.</span>
       </div>
       <div id="capabilities-list" class="capabilities-list"></div>
+    </div>
+
+    <div id="view-objectives" class="view" hidden>
+      <div class="capabilities-header">
+        <span class="capabilities-unit">Objectius personals</span>
+        <span class="capabilities-note">El teu full de ruta personal — fites clau des d'ara fins al 2028.</span>
+      </div>
+      <div id="objectives-root"></div>
     </div>
 
     <div id="view-history" class="view" hidden>
@@ -534,7 +621,12 @@
       domainGov:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l6 2.2v4.4c0 4-2.5 7-6 8.4-3.5-1.4-6-4.4-6-8.4V4.7L10 2.5z"/></svg>',
       personal:'<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="7" r="3.2"/><path d="M3.5 17c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/></svg>',
       chevronDown:'<svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7.5l5 5 5-5"/></svg>',
-      link:'<svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.2 13.5H5.3a3.2 3.2 0 010-6.4H7.2"/><path d="M12.8 7.1h1.9a3.2 3.2 0 010 6.4h-1.9"/><path d="M7 10.3h6"/></svg>'
+      link:'<svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.2 13.5H5.3a3.2 3.2 0 010-6.4H7.2"/><path d="M12.8 7.1h1.9a3.2 3.2 0 010 6.4h-1.9"/><path d="M7 10.3h6"/></svg>',
+      peopleTwo:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.3" cy="6.6" r="2.3"/><path d="M2.6 16c0-2.8 2.1-4.6 4.7-4.6s4.7 1.8 4.7 4.6"/><circle cx="14.2" cy="7.3" r="1.8"/><path d="M12.1 11.8c2-.3 3.9 1 4.7 3"/></svg>',
+      pieChart:'<svg viewBox="0 0 20 20" width="16" height="16"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 10V3a7 7 0 016.1 10.4L10 10z" fill="currentColor" stroke="none"/></svg>',
+      shieldCheck:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l6 2.2v4.4c0 4-2.5 7-6 8.4-3.5-1.4-6-4.4-6-8.4V4.7L10 2.5z"/><path d="M7.3 10.1l1.8 1.8L13 8"/></svg>',
+      sparkle:'<svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor"><path d="M10 2.2l1.9 5.4 5.4 1.9-5.4 1.9L10 17.8l-1.9-5.4-5.4-1.9 5.4-1.9L10 2.2z"/></svg>',
+      target:'<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1.2" fill="currentColor" stroke="none"/></svg>'
     };
 
     function el(tag, opts, children){
@@ -1080,6 +1172,274 @@
       BUSINESS_CAPABILITIES.forEach(function(domain, idx){ container.appendChild(renderCapDomain(domain, idx)); });
     }
 
+    var OBJ_PALETTE = [
+      {bg:'#E4E8F4', fg:'#1B2A55'},
+      {bg:'#E6EDFC', fg:'#2E5DD1'},
+      {bg:'#E5F4EA', fg:'#2E8B57'},
+      {bg:'#E1F5F2', fg:'#1F9E93'},
+      {bg:'#F2E9F7', fg:'#7B4FA6'},
+      {bg:'#FBEFD8', fg:'#C48A1F'}
+    ];
+    var OBJ_ICONS = ['peopleTwo', 'pieChart', 'domainBiz', 'shieldCheck', 'sparkle', 'target', 'star', 'personal'];
+    var OBJ_ICON_LABELS = {
+      peopleTwo: 'Persones', pieChart: 'Gràfic', domainBiz: 'Edifici', shieldCheck: 'Escut',
+      sparkle: 'IA', target: 'Diana', star: 'Estrella', personal: 'Personal'
+    };
+    var DEFAULT_OBJECTIVES = [
+      {id:'obj-1', title:"Contractació nou consultor EA", icon:'peopleTwo', y:2026, q:4, palIdx:0},
+      {id:'obj-2', title:'Control del 10% de les aplicacions', icon:'pieChart', y:2027, q:2, palIdx:1},
+      {id:'obj-3', title:'Control del 50% de les aplicacions', icon:'pieChart', y:2027, q:4, palIdx:1},
+      {id:'obj-4', title:'Capacitats de negoci + OKR CTTI al 50%', icon:'domainBiz', y:2027, q:2, palIdx:2},
+      {id:'obj-5', title:"Aprovació i adopció del metamodel corporatiu, incloent-hi la IA", icon:'shieldCheck', y:2027, q:2, palIdx:2},
+      {id:'obj-6', title:"Control del 50% de l'activitat relacionada amb IA", icon:'sparkle', y:2027, q:4, palIdx:3},
+      {id:'obj-7', title:'Control del 100% aplicacions', icon:'target', y:2028, q:2, palIdx:4}
+    ];
+    var TIMELINE_PALETTE = ['#1B2A55', '#2E8B57', '#1F9E93', '#7B4FA6', '#2E5DD1', '#C48A1F'];
+    var YEAR_BAND_COLORS = ['#151E3A', '#2E7D5B', '#5B4B9E', '#1F6F8B', '#8B4F3A'];
+    var QUARTER_MONTH_NAMES = ['GENER', 'FEBRER', 'MARÇ', 'ABRIL', 'MAIG', 'JUNY', 'JULIOL', 'AGOST', 'SETEMBRE', 'OCTUBRE', 'NOVEMBRE', 'DESEMBRE'];
+    function quarterEndLabel(y, q){
+      return QUARTER_MONTH_NAMES[q * 3 - 1] + ' ' + y;
+    }
+    function cmpQ(y1, q1, y2, q2){ return (y1 * 4 + q1) - (y2 * 4 + q2); }
+    function sortObjectives(){
+      state.objectives.sort(function(a, b){ return cmpQ(a.y, a.q, b.y, b.q); });
+    }
+    function addObjective(title, icon, y, q, palIdx){
+      if(!state.objectives) state.objectives = [];
+      state.objectives.push({id: genId('obj'), title: title, icon: icon, y: y, q: q, palIdx: palIdx});
+      sortObjectives();
+      save();
+    }
+    function updateObjective(id, fields){
+      var o = state.objectives.find(function(x){ return x.id === id; });
+      if(!o) return;
+      if(fields.title !== undefined) o.title = fields.title;
+      if(fields.icon !== undefined) o.icon = fields.icon;
+      if(fields.y !== undefined) o.y = fields.y;
+      if(fields.q !== undefined) o.q = fields.q;
+      if(fields.palIdx !== undefined) o.palIdx = fields.palIdx;
+      sortObjectives();
+      save();
+    }
+    function deleteObjective(id){
+      if(!window.confirm('Vols eliminar aquest objectiu?')) return;
+      state.objectives = state.objectives.filter(function(x){ return x.id !== id; });
+      save();
+    }
+    function buildQuarterList(){
+      if(!state.objectives.length) return [];
+      var minY = state.objectives[0].y, minQ = state.objectives[0].q;
+      var maxY = state.objectives[0].y, maxQ = state.objectives[0].q;
+      state.objectives.forEach(function(o){
+        if(cmpQ(o.y, o.q, minY, minQ) < 0){ minY = o.y; minQ = o.q; }
+        if(cmpQ(o.y, o.q, maxY, maxQ) > 0){ maxY = o.y; maxQ = o.q; }
+      });
+      var list = [];
+      var y = minY, q = minQ;
+      while(cmpQ(y, q, maxY, maxQ) <= 0){
+        list.push({y: y, q: q});
+        q++; if(q > 4){ q = 1; y++; }
+      }
+      return list;
+    }
+    function groupQuartersByYear(list){
+      var years = [];
+      list.forEach(function(item){
+        var last = years[years.length - 1];
+        if(last && last.y === item.y) last.count++;
+        else years.push({y: item.y, count: 1});
+      });
+      return years;
+    }
+    function yearColor(y, years){
+      var idx = years.findIndex(function(yy){ return yy.y === y; });
+      return YEAR_BAND_COLORS[idx % YEAR_BAND_COLORS.length];
+    }
+    function fillObjectiveLabelCell(td, o){
+      td.innerHTML = '';
+      var wrap = el('div', {class:'roadmap-label-cell'});
+      var pal = OBJ_PALETTE[o.palIdx % OBJ_PALETTE.length];
+      var iconBadge = el('span', {class:'roadmap-icon'});
+      iconBadge.style.background = pal.bg; iconBadge.style.color = pal.fg;
+      iconBadge.innerHTML = ICONS[o.icon] || '';
+      var titleWrap = el('div', {class:'roadmap-obj-titlewrap'});
+      titleWrap.appendChild(el('span', {class:'roadmap-obj-title', text: o.title}));
+      var actions = el('div', {class:'roadmap-row-actions'});
+      var editBtn = el('button', {class:'icon-btn', type:'button', title:'Edita', 'aria-label':'Edita l\'objectiu ' + o.title, onclick: function(){ startEditObjective(td, o); }}, [iconEl('pencil')]);
+      var delBtn = el('button', {class:'icon-btn danger-hover', type:'button', title:'Elimina', 'aria-label':'Elimina l\'objectiu ' + o.title, onclick: function(){ deleteObjective(o.id); }}, [iconEl('trash')]);
+      actions.appendChild(editBtn); actions.appendChild(delBtn);
+      wrap.appendChild(iconBadge); wrap.appendChild(titleWrap); wrap.appendChild(actions);
+      td.appendChild(wrap);
+    }
+    function objectiveFieldSelects(o){
+      var yearSel = el('select', {});
+      var baseY = Math.min(o ? o.y : new Date().getFullYear(), new Date().getFullYear());
+      for(var y = baseY; y <= baseY + 5; y++){
+        var yOpt = el('option', {value: String(y), text: String(y)});
+        if(o && y === o.y) yOpt.selected = true;
+        yearSel.appendChild(yOpt);
+      }
+      var qSel = el('select', {});
+      ['Q1', 'Q2', 'Q3', 'Q4'].forEach(function(qt, i){
+        var qOpt = el('option', {value: String(i + 1), text: qt});
+        if(o && i + 1 === o.q) qOpt.selected = true;
+        qSel.appendChild(qOpt);
+      });
+      var iconSel = el('select', {});
+      OBJ_ICONS.forEach(function(ic){
+        var iOpt = el('option', {value: ic, text: OBJ_ICON_LABELS[ic] || ic});
+        if(o && ic === o.icon) iOpt.selected = true;
+        iconSel.appendChild(iOpt);
+      });
+      var colorSel = el('select', {});
+      OBJ_PALETTE.forEach(function(p, i){
+        var cOpt = el('option', {value: String(i), text: 'Color ' + (i + 1)});
+        if(o && i === o.palIdx) cOpt.selected = true;
+        colorSel.appendChild(cOpt);
+      });
+      return {yearSel: yearSel, qSel: qSel, iconSel: iconSel, colorSel: colorSel};
+    }
+    function startEditObjective(td, o){
+      td.innerHTML = '';
+      var wrap = el('div', {class:'roadmap-edit-cell'});
+      var titleInput = el('input', {type:'text', value: o.title, maxlength:'140'});
+      var sels = objectiveFieldSelects(o);
+      var rowFields = el('div', {class:'objective-fields-row'});
+      rowFields.appendChild(sels.yearSel); rowFields.appendChild(sels.qSel);
+      rowFields.appendChild(sels.iconSel); rowFields.appendChild(sels.colorSel);
+      var actions = el('div', {class:'cap-edit-actions'});
+      var cancelBtn = el('button', {class:'icon-btn', type:'button', title:'Cancel·la', 'aria-label':'Cancel·la l\'edició', onclick: function(){ fillObjectiveLabelCell(td, o); }}, [iconEl('x')]);
+      var saveBtn = el('button', {class:'icon-btn', type:'button', title:'Desa', 'aria-label':'Desa l\'objectiu', onclick: function(){
+        var title = titleInput.value.trim();
+        if(!title) return;
+        updateObjective(o.id, {title: title, icon: sels.iconSel.value, y: Number(sels.yearSel.value), q: Number(sels.qSel.value), palIdx: Number(sels.colorSel.value)});
+      }}, [iconEl('check')]);
+      actions.appendChild(cancelBtn); actions.appendChild(saveBtn);
+      wrap.appendChild(titleInput); wrap.appendChild(rowFields); wrap.appendChild(actions);
+      td.appendChild(wrap);
+    }
+    function buildObjectiveRow(o, quarters){
+      var row = el('tr', {'data-obj-id': o.id});
+      var labelTd = el('td', {class:'roadmap-label-td'});
+      fillObjectiveLabelCell(labelTd, o);
+      row.appendChild(labelTd);
+      var pal = OBJ_PALETTE[o.palIdx % OBJ_PALETTE.length];
+      quarters.forEach(function(item){
+        var td = el('td', {class:'roadmap-cell'});
+        if(item.y === o.y && item.q === o.q){
+          var dotWrap = el('span', {class:'roadmap-dot-wrap'});
+          var dot = el('span', {class:'roadmap-dot', title: quarterEndLabel(o.y, o.q)});
+          dot.style.background = pal.bg;
+          var inner = el('span', {class:'roadmap-dot-inner'});
+          inner.style.background = pal.fg;
+          dot.appendChild(inner);
+          var tail = el('span', {class:'roadmap-dot-tail'});
+          tail.style.borderLeftColor = pal.fg;
+          dotWrap.appendChild(dot); dotWrap.appendChild(tail);
+          td.appendChild(dotWrap);
+        }
+        row.appendChild(td);
+      });
+      return row;
+    }
+    function renderObjectivesTable(root){
+      sortObjectives();
+      var quarters = buildQuarterList();
+      if(!quarters.length){
+        root.appendChild(el('p', {class:'empty-note', text:'Encara no has afegit cap objectiu personal.'}));
+        return;
+      }
+      var years = groupQuartersByYear(quarters);
+      var wrap = el('div', {class:'roadmap-wrap'});
+      var table = el('table', {class:'roadmap-table'});
+      var thead = el('thead');
+      var yearRow = el('tr');
+      yearRow.appendChild(el('th', {class:'roadmap-corner', text:'Objectius'}));
+      years.forEach(function(yr){
+        var th = el('th', {class:'roadmap-year', colspan: String(yr.count), text: String(yr.y)});
+        th.style.background = yearColor(yr.y, years);
+        yearRow.appendChild(th);
+      });
+      thead.appendChild(yearRow);
+      var qRow = el('tr');
+      qRow.appendChild(el('th', {class:'roadmap-corner-sub'}));
+      quarters.forEach(function(item){ qRow.appendChild(el('th', {class:'roadmap-quarter', text:'Q' + item.q})); });
+      thead.appendChild(qRow);
+      table.appendChild(thead);
+
+      var tbody = el('tbody');
+      state.objectives.forEach(function(o){ tbody.appendChild(buildObjectiveRow(o, quarters)); });
+      table.appendChild(tbody);
+
+      var tfoot = el('tfoot');
+      var tRow = el('tr', {class:'roadmap-timeline-row'});
+      tRow.appendChild(el('td', {class:'roadmap-corner-sub'}));
+      var segColor = TIMELINE_PALETTE[0];
+      var segIdx = 0;
+      quarters.forEach(function(item, qi){
+        var milestoneHere = state.objectives.some(function(o){ return o.y === item.y && o.q === item.q; });
+        var td = el('td', {class:'roadmap-cell roadmap-timeline-cell'});
+        td.style.borderTopColor = segColor;
+        if(milestoneHere){
+          var color = TIMELINE_PALETTE[segIdx % TIMELINE_PALETTE.length];
+          var big = el('span', {class:'roadmap-timeline-dot'});
+          big.style.background = color;
+          var label = el('span', {class:'roadmap-timeline-label', text: quarterEndLabel(item.y, item.q)});
+          label.style.background = color;
+          td.appendChild(big); td.appendChild(label);
+          segIdx++;
+          segColor = TIMELINE_PALETTE[segIdx % TIMELINE_PALETTE.length];
+        }
+        if(qi === quarters.length - 1){
+          var arrow = el('span', {class:'roadmap-arrow'});
+          arrow.style.borderLeftColor = TIMELINE_PALETTE[(segIdx > 0 ? segIdx - 1 : 0) % TIMELINE_PALETTE.length];
+          td.appendChild(arrow);
+        }
+        tRow.appendChild(td);
+      });
+      tfoot.appendChild(tRow);
+      table.appendChild(tfoot);
+
+      wrap.appendChild(table);
+      root.appendChild(wrap);
+    }
+    function renderAddObjectiveForm(root){
+      var details = el('details', {class:'add-task'});
+      var summary = el('summary', {}, [iconEl('plus'), document.createTextNode(' Afegeix un objectiu')]);
+      details.appendChild(summary);
+      var form = el('form', {class:'add-task-form'});
+      var titleInput = el('input', {type:'text', placeholder:'Objectiu', required:'required', maxlength:'140'});
+      var sels = objectiveFieldSelects(null);
+      var rowFields = el('div', {class:'objective-fields-row'});
+      var yearField = el('label', {class:'cap-field'}, [document.createTextNode('Any')]); yearField.appendChild(sels.yearSel);
+      var qField = el('label', {class:'cap-field'}, [document.createTextNode('Trimestre')]); qField.appendChild(sels.qSel);
+      var iconField = el('label', {class:'cap-field'}, [document.createTextNode('Icona')]); iconField.appendChild(sels.iconSel);
+      var colorField = el('label', {class:'cap-field'}, [document.createTextNode('Color')]); colorField.appendChild(sels.colorSel);
+      rowFields.appendChild(yearField); rowFields.appendChild(qField); rowFields.appendChild(iconField); rowFields.appendChild(colorField);
+      var actions = el('div', {class:'form-actions'});
+      var cancelBtn = el('button', {type:'button', class:'btn ghost small', text:'Cancel·la', onclick: function(){ form.reset(); details.open = false; }});
+      var saveBtn = el('button', {type:'submit', class:'btn primary small', text:'Desa'});
+      actions.appendChild(cancelBtn); actions.appendChild(saveBtn);
+      form.appendChild(titleInput); form.appendChild(rowFields); form.appendChild(actions);
+      form.addEventListener('submit', function(ev){
+        ev.preventDefault();
+        var title = titleInput.value.trim();
+        if(!title) return;
+        addObjective(title, sels.iconSel.value, Number(sels.yearSel.value), Number(sels.qSel.value), Number(sels.colorSel.value));
+        form.reset(); details.open = false;
+      });
+      details.appendChild(form);
+      root.appendChild(details);
+    }
+    function renderObjectives(){
+      var root = document.getElementById('objectives-root');
+      if(!root) return;
+      root.innerHTML = '';
+      if(!state.objectives) state.objectives = [];
+      renderObjectivesTable(root);
+      renderAddObjectiveForm(root);
+    }
+
     function renderGroups(){
       if(state.settings.viewMode === 'list') renderGroupsListView();
       else renderGroupsCards();
@@ -1322,19 +1682,23 @@
       document.getElementById('view-today').hidden = name !== 'today';
       document.getElementById('view-history').hidden = name !== 'history';
       document.getElementById('view-capabilities').hidden = name !== 'capabilities';
+      document.getElementById('view-objectives').hidden = name !== 'objectives';
       document.getElementById('tab-pending').classList.toggle('active', name === 'pending');
       document.getElementById('tab-today').classList.toggle('active', name === 'today');
       document.getElementById('tab-history').classList.toggle('active', name === 'history');
       document.getElementById('tab-capabilities').classList.toggle('active', name === 'capabilities');
+      document.getElementById('tab-objectives').classList.toggle('active', name === 'objectives');
       if(name === 'history') renderHistory();
       if(name === 'today') renderTodayView();
       if(name === 'capabilities') renderCapabilities();
+      if(name === 'objectives') renderObjectives();
     }
 
     function render(){
       renderGroups();
       if(!document.getElementById('view-history').hidden) renderHistory();
       if(!document.getElementById('view-today').hidden) renderTodayView();
+      if(!document.getElementById('view-objectives').hidden) renderObjectives();
       updateUndoControl();
     }
 
@@ -1434,6 +1798,7 @@
         if(!state.settings.viewMode) state.settings.viewMode = 'cards';
         if(typeof state.settings.personalCollapsed === 'undefined') state.settings.personalCollapsed = false;
         if(typeof state.lastResolvedId === 'undefined') state.lastResolvedId = null;
+        if(!state.objectives) state.objectives = [];
         document.getElementById('view-cards').classList.toggle('active', state.settings.viewMode === 'cards');
         document.getElementById('view-list').classList.toggle('active', state.settings.viewMode === 'list');
         save();
@@ -1497,6 +1862,7 @@
       if(!state.settings) state.settings = {};
       if(!state.settings.viewMode) state.settings.viewMode = 'cards';
       if(typeof state.settings.personalCollapsed === 'undefined') state.settings.personalCollapsed = false;
+      if(!state.objectives) state.objectives = DEFAULT_OBJECTIVES.slice();
       document.getElementById('view-cards').classList.toggle('active', state.settings.viewMode === 'cards');
       document.getElementById('view-list').classList.toggle('active', state.settings.viewMode === 'list');
       document.getElementById('view-cards').addEventListener('click', function(){ setViewMode('cards'); });
@@ -1506,6 +1872,7 @@
       document.getElementById('tab-today').addEventListener('click', function(){ showView('today'); });
       document.getElementById('tab-history').addEventListener('click', function(){ showView('history'); });
       document.getElementById('tab-capabilities').addEventListener('click', function(){ showView('capabilities'); });
+      document.getElementById('tab-objectives').addEventListener('click', function(){ showView('objectives'); });
       document.getElementById('detail-overlay').addEventListener('click', function(ev){ if(ev.target.id === 'detail-overlay') closeDetail(); });
       document.addEventListener('keydown', function(ev){ if(ev.key === 'Escape' && !document.getElementById('detail-overlay').hidden) closeDetail(); });
       document.getElementById('history-status-filter').addEventListener('change', function(ev){ historyFilter.status = ev.target.value; renderHistory(); });
