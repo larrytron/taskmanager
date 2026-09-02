@@ -403,13 +403,13 @@
   }
   .roadmap-table{border-collapse:collapse; width:100%; min-width:760px;}
   .roadmap-corner{
-    background:#15171C; color:#F3F4F7; font-family:var(--font-body); font-weight:700;
+    background:var(--accent-deep); color:#fff; font-family:var(--font-body); font-weight:700;
     font-size:12px; letter-spacing:.05em; text-transform:uppercase; text-align:left;
     padding:12px 16px; min-width:230px; position:sticky; left:0; z-index:2;
   }
   .roadmap-corner-sub{
-    background:#15171C; min-width:230px; position:sticky; left:0; z-index:2;
-    border-right:1px solid rgba(255,255,255,.1);
+    background:var(--accent-deep); min-width:230px; position:sticky; left:0; z-index:2;
+    border-right:1px solid rgba(255,255,255,.15);
   }
   .roadmap-year{
     color:#fff; font-family:var(--font-body); font-weight:700; font-size:13px;
@@ -446,22 +446,6 @@
   .roadmap-dot{width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
   .roadmap-dot-inner{width:10px; height:10px; border-radius:50%;}
   .roadmap-dot-tail{width:0; height:12px; border-left:2px dotted; margin-top:2px; opacity:.55;}
-  .roadmap-timeline-row td{border-bottom:none; padding-top:18px; padding-bottom:12px;}
-  .roadmap-timeline-cell{border-top:3px solid var(--line); border-right:none;}
-  .roadmap-timeline-dot{
-    display:inline-block; width:13px; height:13px; border-radius:50%; margin-top:-9.5px;
-    box-shadow:0 0 0 3px var(--surface);
-  }
-  .roadmap-timeline-label{
-    display:inline-block; margin-top:9px; font-family:var(--font-mono); font-weight:700;
-    font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; white-space:nowrap;
-    color:#fff; padding:2px 8px; border-radius:999px;
-  }
-  .roadmap-arrow{
-    position:absolute; right:-6px; top:50%; width:0; height:0;
-    transform:translateY(calc(-50% - 9px)); border-style:solid; border-width:5px 0 5px 8px;
-    border-color:transparent transparent transparent var(--line);
-  }
   .roadmap-edit-cell{display:flex; flex-direction:column; gap:6px; padding:10px 12px; min-width:260px;}
   .roadmap-edit-cell input[type="text"]{
     font-family:var(--font-body); font-size:13px; padding:6px 8px; border:1px solid var(--line);
@@ -1194,7 +1178,6 @@
       {id:'obj-6', title:"Control del 50% de l'activitat relacionada amb IA", icon:'sparkle', y:2027, q:4, palIdx:3},
       {id:'obj-7', title:'Control del 100% aplicacions', icon:'target', y:2028, q:2, palIdx:4}
     ];
-    var TIMELINE_PALETTE = ['#1B2A55', '#2E8B57', '#1F9E93', '#7B4FA6', '#2E5DD1', '#C48A1F'];
     var YEAR_BAND_COLORS = ['#151E3A', '#2E7D5B', '#5B4B9E', '#1F6F8B', '#8B4F3A'];
     var QUARTER_MONTH_NAMES = ['GENER', 'FEBRER', 'MARÇ', 'ABRIL', 'MAIG', 'JUNY', 'JULIOL', 'AGOST', 'SETEMBRE', 'OCTUBRE', 'NOVEMBRE', 'DESEMBRE'];
     function quarterEndLabel(y, q){
@@ -1370,35 +1353,6 @@
       var tbody = el('tbody');
       state.objectives.forEach(function(o){ tbody.appendChild(buildObjectiveRow(o, quarters)); });
       table.appendChild(tbody);
-
-      var tfoot = el('tfoot');
-      var tRow = el('tr', {class:'roadmap-timeline-row'});
-      tRow.appendChild(el('td', {class:'roadmap-corner-sub'}));
-      var segColor = TIMELINE_PALETTE[0];
-      var segIdx = 0;
-      quarters.forEach(function(item, qi){
-        var milestoneHere = state.objectives.some(function(o){ return o.y === item.y && o.q === item.q; });
-        var td = el('td', {class:'roadmap-cell roadmap-timeline-cell'});
-        td.style.borderTopColor = segColor;
-        if(milestoneHere){
-          var color = TIMELINE_PALETTE[segIdx % TIMELINE_PALETTE.length];
-          var big = el('span', {class:'roadmap-timeline-dot'});
-          big.style.background = color;
-          var label = el('span', {class:'roadmap-timeline-label', text: quarterEndLabel(item.y, item.q)});
-          label.style.background = color;
-          td.appendChild(big); td.appendChild(label);
-          segIdx++;
-          segColor = TIMELINE_PALETTE[segIdx % TIMELINE_PALETTE.length];
-        }
-        if(qi === quarters.length - 1){
-          var arrow = el('span', {class:'roadmap-arrow'});
-          arrow.style.borderLeftColor = TIMELINE_PALETTE[(segIdx > 0 ? segIdx - 1 : 0) % TIMELINE_PALETTE.length];
-          td.appendChild(arrow);
-        }
-        tRow.appendChild(td);
-      });
-      tfoot.appendChild(tRow);
-      table.appendChild(tfoot);
 
       wrap.appendChild(table);
       root.appendChild(wrap);
