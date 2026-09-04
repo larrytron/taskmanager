@@ -211,6 +211,10 @@
     border-radius:999px; flex:none; white-space:nowrap; max-width:160px;
     overflow:hidden; text-overflow:ellipsis;
   }
+  .today-since-badge{
+    font-family:var(--font-mono); font-weight:600; font-size:10.5px; padding:3px 8px;
+    border-radius:999px; flex:none; white-space:nowrap; background:var(--today-soft); color:var(--today);
+  }
   .today-row{gap:8px;}
   .today-list{
     background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
@@ -660,10 +664,11 @@
       return d.getFullYear() + '-' + m + '-' + day;
     }
     function isToday(t){ return !!t.todayDate && t.todayDate === todayISO(); }
+    function isInToday(t){ return !!t.todayDate; }
     function toggleToday(taskId){
       var loc = findTaskLocation(taskId);
       if(!loc) return;
-      loc.task.todayDate = isToday(loc.task) ? null : todayISO();
+      loc.task.todayDate = isInToday(loc.task) ? null : todayISO();
       save();
     }
     function findTaskLocation(taskId){
@@ -846,7 +851,7 @@
       var row = el('div', {class:'task-row', draggable:'true', 'data-task-id': t.id});
       var grip = el('span', {class:'drag-handle', 'aria-hidden':'true'}, [iconEl('grip')]);
       var complete = el('button', {class:'complete-btn', type:'button', title:'Marca com a completada', 'aria-label':'Marca com a completada: ' + t.title, onclick: function(){ completeTask(t.id); }}, [iconEl('check')]);
-      var marked = isToday(t);
+      var marked = isInToday(t);
       var todayBtn = el('button', {class:'today-btn' + (marked ? ' is-today' : ''), type:'button', title: marked ? 'Treu d\'avui' : 'Marca per avui', 'aria-label': (marked ? 'Treu d\'avui: ' : 'Marca per avui: ') + t.title, onclick: function(){ toggleToday(t.id); }}, [iconEl('star')]);
       var titleBtn = el('button', {class:'task-title', type:'button', title: t.title});
       titleBtn.appendChild(document.createTextNode(t.title));
@@ -1451,6 +1456,15 @@
       }
       updateSummary();
     }
+    function todaySinceLabel(dateStr){
+      if(!dateStr || dateStr === todayISO()) return null;
+      var d = new Date(dateStr + 'T00:00:00');
+      var today = new Date(); today.setHours(0,0,0,0);
+      var diffDays = Math.round((today - d) / 86400000);
+      if(diffDays === 1) return 'Ahir';
+      if(diffDays > 1) return 'Fa ' + diffDays + ' dies';
+      return formatDate(dateStr);
+    }
     function renderTodayRow(t, g, idx){
       var pal = paletteFor(idx);
       var row = el('div', {class:'task-row today-row', 'data-task-id': t.id});
@@ -1460,6 +1474,10 @@
       titleBtn.appendChild(document.createTextNode(t.title));
       titleBtn.addEventListener('click', function(){ openDetail(t.id); });
       var right = el('div', {class:'task-right'});
+      var sinceLabel = todaySinceLabel(t.todayDate);
+      if(sinceLabel){
+        right.appendChild(el('span', {class:'today-since-badge', title:'Afegida a Avui el ' + formatDate(t.todayDate), text: sinceLabel}));
+      }
       var capLink = capabilityLinkFor(g.id);
       if(capLink){
         var capPal = CAP_PALETTE[capLink.domainIdx % CAP_PALETTE.length];
@@ -1482,7 +1500,7 @@
       container.innerHTML = '';
       var items = [];
       state.groups.forEach(function(g, idx){
-        g.tasks.forEach(function(t){ if(isToday(t)) items.push({task:t, group:g, idx:idx}); });
+        g.tasks.forEach(function(t){ if(isInToday(t)) items.push({task:t, group:g, idx:idx}); });
       });
       document.getElementById('summary-today').textContent = items.length;
       if(items.length === 0){
